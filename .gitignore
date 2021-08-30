@@ -1,0 +1,6 @@
+.DS_Store
+settings.ini
+composer.phar
+vendor/
+jobs/
+done/
