@@ -1,0 +1,67 @@
+{
+    // should mmseqs und webserver output be printed
+    "verbose": true,
+    "server" : {
+        "address"    : "127.0.0.1:8081",
+        // prefix for all API endpoints
+        "pathprefix" : "/api/",
+        /* enable HTTP Basic Auth (optional)
+        "auth": {
+            "username" : "",
+            "password" : ""
+        },
+        */
+        // should CORS headers be set to allow requests from anywhere
+        "cors"       : true
+    },
+    // cameo specific settigns, special character ~ is resolved relative to the binary location
+    "cameo" : {
+        // path to mmseqs databases, has to be shared between server/workers
+        "path"    : "~",
+        // server names
+        "servers" : ["ColabFold-BFD", "ColabFold-ENV"],
+        // response URL
+        "response" : "https://cameo3d.mmseqs.com"
+    },
+    "mail" : {
+        "mailer" : {
+            // three types available:
+            // null: uses NullTransport class, which ignores all sent emails
+            "type" : "null"
+            /* smtp: Uses SMTP to send emails example for gmail
+            "type" : "smtp",
+            "transport" : {
+                // full host URL with port
+                "host" : "smtp.gmail.com:587",
+                // RFC 4616  PLAIN authentication
+                "auth" : {
+                    {
+                        // empty for gmail
+                        "identity" : "",
+                        // gmail user
+                        "username" : "user@gmail.com",
+                        "password" : "password",
+                        "host" : "smtp.gmail.com",
+                    }
+                }
+            }
+            */
+            /* mailgun: Uses the mailgun API to send emails
+            "type"      : "mailgun",
+            "transport" : {
+                // mailgun domain
+                "domain" : "mail.mmseqs.com",
+                // mailgun API private key
+                "secretkey" : "key-XXXX",
+                // mailgun API public key
+                "publickey" : "pubkey-XXXX"
+            }
+            */
+        },
+        // Email FROM field
+        "sender"    : "mail@example.org",
+        /* Bracket notation is also possible:
+        "sender"    : "Webserver <mail@example.org>",
+        */
+    }
+}
