@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime"
 	"net/mail"
 	"net/smtp"
-	"strings"
 
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
@@ -117,20 +117,21 @@ type SmtpTransport struct {
 	Auth SmtpAuth `json:"auth"`
 }
 
-func encodeRFC2047(String string) string {
-	// use mail's rfc2047 to encode any string
-	addr := mail.Address{String, ""}
-	return strings.TrimSuffix(addr.String(), " <@>")
-}
-
 func (t SmtpTransport) Send(email Mail) error {
-	from := mail.Address{email.Recipient, email.Sender}
-	to := mail.Address{email.Recipient, email.Recipient}
-
 	header := make(map[string]string)
+	from, err := mail.ParseAddress(email.Sender)
+	if err != nil {
+		return err
+	}
 	header["From"] = from.String()
-	header["To"] = to.String()
-	header["Subject"] = encodeRFC2047(email.Subject)
+	if email.Recipient != "" {
+		to, err := mail.ParseAddress(email.Recipient)
+		if err != nil {
+			return err
+		}
+		header["To"] = to.String()
+	}
+	header["Subject"] = mime.QEncoding.Encode("utf-8", email.Subject)
 	header["MIME-Version"] = "1.0"
 	header["Content-Type"] = "text/plain; charset=\"utf-8\""
 	header["Content-Transfer-Encoding"] = "base64"
@@ -155,7 +156,7 @@ func (t SmtpTransport) Send(email Mail) error {
 	} else {
 		return errors.New("Invalid auth type: " + t.Auth.AuthType)
 	}
-	err := smtp.SendMail(
+	err = smtp.SendMail(
 		t.Host,
 		auth,
 		email.Sender,
