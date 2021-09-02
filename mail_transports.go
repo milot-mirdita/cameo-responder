@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/mail"
 	"net/smtp"
@@ -10,6 +11,34 @@ import (
 
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
+
+// https://stackoverflow.com/a/59355954
+type loginAuth struct {
+	username, password string
+}
+
+// LoginAuth is used for smtp login auth
+func LoginAuth(username, password string) smtp.Auth {
+	return &loginAuth{username, password}
+}
+
+func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	return "LOGIN", []byte(a.username), nil
+}
+
+func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		switch string(fromServer) {
+		case "Username:":
+			return []byte(a.username), nil
+		case "Password:":
+			return []byte(a.password), nil
+		default:
+			return nil, errors.New("Unknown from server")
+		}
+	}
+	return nil, nil
+}
 
 type TransportType string
 
@@ -119,7 +148,8 @@ func (t SmtpTransport) Send(email Mail) error {
 
 	err := smtp.SendMail(
 		t.Host,
-		smtp.PlainAuth(t.Auth.Identity, t.Auth.Username, t.Auth.Password, t.Auth.Host),
+		// smtp.PlainAuth(t.Auth.Identity, t.Auth.Username, t.Auth.Password, t.Auth.Host),
+		LoginAuth(t.Auth.Username, t.Auth.Password),
 		email.Sender,
 		recpt,
 		[]byte(message),
