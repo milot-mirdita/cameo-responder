@@ -235,7 +235,7 @@ func main() {
 			if file.Mode().IsRegular() == false {
 				continue
 			}
-			if filepath.Ext(file.Name()) != "json" {
+			if filepath.Ext(file.Name()) != ".json" {
 				continue
 			}
 
