@@ -106,6 +106,7 @@ func (t NullTransport) Send(mail Mail) error {
 }
 
 type SmtpAuth struct {
+	AuthType string `json:"type"`
 	Identity string `json:"identity"`
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -146,10 +147,17 @@ func (t SmtpTransport) Send(email Mail) error {
 	}
 	recpt = append(recpt, email.BCC[:]...)
 
+	var auth smtp.Auth
+	if t.Auth.AuthType == "plain" {
+		auth = smtp.PlainAuth(t.Auth.Identity, t.Auth.Username, t.Auth.Password, t.Auth.Host)
+	} else if t.Auth.AuthType == "login" {
+		auth = LoginAuth(t.Auth.Username, t.Auth.Password)
+	} else {
+		return errors.New("Invalid auth type: " + t.Auth.AuthType)
+	}
 	err := smtp.SendMail(
 		t.Host,
-		// smtp.PlainAuth(t.Auth.Identity, t.Auth.Username, t.Auth.Password, t.Auth.Host),
-		LoginAuth(t.Auth.Username, t.Auth.Password),
+		auth,
 		email.Sender,
 		recpt,
 		[]byte(message),

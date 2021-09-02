@@ -47,16 +47,16 @@ var defaultFileContent = []byte(`{
             "transport" : {
                 // full host URL with port
                 "host" : "smtp.gmail.com:587",
-                // RFC 4616  PLAIN authentication
+                // smtp auth
                 "auth" : {
-                    {
-                        // empty for gmail
-                        "identity" : "",
-                        // gmail user
-                        "username" : "user@gmail.com",
-                        "password" : "password",
-                        "host" : "smtp.gmail.com",
-                    }
+                    // auth type, can be plain (RFC 4616) or login (e.g. for exchange server)
+                    "type"     : "plain",
+                    // empty for gmail
+                    "identity" : "",
+                    // gmail user
+                    "username" : "user@gmail.com",
+                    "password" : "password",
+                    "host" : "smtp.gmail.com",
                 }
             }
             */
