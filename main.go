@@ -245,7 +245,9 @@ func main() {
 				return
 			}
 			w.Write([]byte(data))
-			w.Write([]byte("\n"))
+			if data[len(data)-1] != '\n' {
+				w.Write([]byte("\n"))
+			}
 			err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
