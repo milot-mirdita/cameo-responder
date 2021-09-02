@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -42,6 +44,18 @@ type Job struct {
 	Sequence    string `json:"sequence"`
 	Email       string `json:"email"`
 	ResponseURL string `json:"response"`
+}
+
+func (r Job) Hash() string {
+	h := sha256.New224()
+	h.Write([]byte(r.Server))
+	h.Write([]byte(r.Target))
+	h.Write([]byte(r.Sequence))
+	h.Write([]byte(r.Email))
+	h.Write([]byte(r.ResponseURL))
+
+	bs := h.Sum(nil)
+	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(bs)
 }
 
 func ParseConfigName(args []string) (string, []string) {
@@ -120,12 +134,13 @@ func main() {
 			return
 		}
 
-		file, err := os.Create(path.Join(config.Cameo.JobPath, "jobs", server, target+".json"))
+		job := Job{server, target, sequence, email, config.Cameo.ResponseURL}
+		file, err := os.Create(path.Join(config.Cameo.JobPath, "jobs", server, target+"."+job.Hash()+".json"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		err = json.NewEncoder(file).Encode(Job{server, target, sequence, email, config.Cameo.ResponseURL})
+		err = json.NewEncoder(file).Encode(job)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
