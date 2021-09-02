@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -232,7 +231,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		var encoded string
 		for _, file := range files {
 			if file.Mode().IsRegular() == false {
 				continue
@@ -246,10 +244,7 @@ func main() {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			encoded = base64.StdEncoding.EncodeToString(data)
-			w.Write([]byte(file.Name()))
-			w.Write([]byte(":"))
-			w.Write([]byte(encoded))
+			w.Write([]byte(data))
 			w.Write([]byte("\n"))
 			err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
 			if err != nil {
