@@ -164,7 +164,7 @@ func main() {
 			"",
 			"Error in Target: " + target,
 			"Error",
-			[]string{},
+			config.Mail.BCC,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -213,7 +213,7 @@ func main() {
 			email,
 			target + " - " + server,
 			string(result),
-			[]string{},
+			config.Mail.BCC,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)

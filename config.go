@@ -76,7 +76,9 @@ var defaultFileContent = []byte(`{
         "sender"    : "mail@example.org",
         /* Bracket notation is also possible:
         "sender"    : "Webserver <mail@example.org>",
-        */
+        */,
+		// list of emails to BCC
+		"bcc"       : []
     }
 }
 `)
@@ -91,6 +93,7 @@ type ConfigMail struct {
 	Mailer *ConfigMailtransport `json:"mailer"`
 	Sender string               `json:"sender"`
 	Target string               `json:"target"`
+	BCC    []string             `json:"bcc"`
 }
 
 type ConfigAuth struct {
