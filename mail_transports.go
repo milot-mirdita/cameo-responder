@@ -120,7 +120,7 @@ type SmtpTransport struct {
 func encodeRFC2047(String string) string {
 	// use mail's rfc2047 to encode any string
 	addr := mail.Address{String, ""}
-	return strings.Trim(addr.String(), " <>")
+	return strings.TrimSuffix(addr.String(), " <@>")
 }
 
 func (t SmtpTransport) Send(email Mail) error {
