@@ -1,11 +1,13 @@
 package main
 
 import (
-	"encoding/base64"
+	//"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	//"strings"
 	"mime"
+	//"mime/quotedprintable"
 	"net/mail"
 	"net/smtp"
 
@@ -134,13 +136,20 @@ func (t SmtpTransport) Send(email Mail) error {
 	header["Subject"] = mime.QEncoding.Encode("utf-8", email.Subject)
 	header["MIME-Version"] = "1.0"
 	header["Content-Type"] = "text/plain; charset=\"utf-8\""
-	header["Content-Transfer-Encoding"] = "base64"
+	//header["Content-Transfer-Encoding"] = "base64"
+	//header["Content-Transfer-Encoding"] = "quoted-printable"
 	message := ""
 	for k, v := range header {
 		message += fmt.Sprintf("%s: %s\r\n", k, v)
 	}
 
-	message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(email.Body))
+	//message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(email.Body))
+	//builder := new(strings.Builder)
+	//w := quotedprintable.NewWriter(builder)
+	//w.Write([]byte(email.Body))
+	//w.Close()
+	//message += "\r\n" + builder.String()
+	message += "\r\n" + email.Body
 
 	recpt := make([]string, 0)
 	if email.Recipient != "" {
