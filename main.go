@@ -12,20 +12,27 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strings"
+    "strings"
+    "strconv"
 
 	"github.com/goji/httpauth"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-func sanitizeTarget(target string) string {
-	targetRe := regexp.MustCompile("[^A-Za-z0-9_-]")
-	return targetRe.ReplaceAllString(target, "")
+func sanitizeTarget(value string) string {
+	rx := regexp.MustCompile("[^A-Za-z0-9_-]")
+	return rx.ReplaceAllString(value, "")
 }
-func sanitizeSequence(sequence string) string {
-	sequenceRe := regexp.MustCompile("[^A-Z]")
-	return sequenceRe.ReplaceAllString(strings.ToUpper(sequence), "")
+
+func sanitizeStoichiometry(value string) string {
+	rx := regexp.MustCompile("[^A-Za-z0-9]")
+	return rx.ReplaceAllString(value, "")
+}
+
+func sanitizeSequence(value string) string {
+    rx := regexp.MustCompile("[^A-Z:]")
+	return rx.ReplaceAllString(strings.ToUpper(value), "")
 }
 
 func isIn(num string, params []string) int {
@@ -39,11 +46,12 @@ func isIn(num string, params []string) int {
 }
 
 type Job struct {
-	Server      string `json:"server"`
-	Target      string `json:"target"`
-	Sequence    string `json:"sequence"`
-	Email       string `json:"email"`
-	ResponseURL string `json:"response"`
+	Server        string `json:"server"`
+	Target        string `json:"target"`
+	Sequence      string `json:"sequence"`
+    Stoichiometry string `json:"stoichiometry"`
+	Email         string `json:"email"`
+	ResponseURL   string `json:"response"`
 }
 
 func (r Job) Hash() string {
@@ -51,6 +59,7 @@ func (r Job) Hash() string {
 	h.Write([]byte(r.Server))
 	h.Write([]byte(r.Target))
 	h.Write([]byte(r.Sequence))
+	h.Write([]byte(r.Stoichiometry))
 	h.Write([]byte(r.Email))
 	h.Write([]byte(r.ResponseURL))
 
@@ -97,26 +106,36 @@ func main() {
 	log.Println("Using " + config.Mail.Mailer.Type + " mail transport")
 	mailer := config.Mail.Mailer.GetTransport()
 
+    splitStoichiometry := regexp.MustCompile("[0-9]+")
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		// var err error
-		// if strings.HasPrefix(req.Header.Get("Content-Type"), "multipart/form-data") {
-		// 	err = req.ParseMultipartForm(int64(128 * 1024 * 1024))
-		// } else {
-		// 	err = req.ParseForm()
-		// }
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusBadRequest)
-		// 	return
-		// }
 		email := req.FormValue("REPLY-E-MAIL")
 		server := req.FormValue("SERVER")
 		target := sanitizeTarget(req.FormValue("TARGET"))
-		sequence := sanitizeSequence(req.FormValue("SEQUENCE"))
+		sequence := req.FormValue("SEQUENCE")
+        stoichiometry := sanitizeStoichiometry(req.FormValue("STOICHIOMETRY"))
+        if stoichiometry != "" {
+            repeats := splitStoichiometry.FindAllString(stoichiometry, -1)
+            i := 0
+            var s []string
+            for _, line := range strings.Split(strings.TrimSuffix(sequence, "\n"), "\n") {
+                if strings.HasPrefix(line, ">") {
+                    continue
+                }
+                repeat, _ := strconv.Atoi(repeats[i])
+                for j := 0; j < repeat; j++ {
+                    s = append(s, line)
+                }
+                i += 1
+            }
+            sequence = strings.Join(s, ":")
+        }
+        sequence = sanitizeSequence(sequence)
 		if email == "" || server == "" || target == "" || sequence == "" {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
 
 		_, err = mail.ParseAddress(email)
 		if err != nil {
@@ -134,7 +153,7 @@ func main() {
 			return
 		}
 
-		job := Job{server, target, sequence, email, config.Cameo.ResponseURL}
+		job := Job{server, target, sequence, stoichiometry, email, config.Cameo.ResponseURL}
 		file, err := os.Create(path.Join(config.Cameo.JobPath, "jobs", server, target+"."+job.Hash()+".json"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -150,6 +169,18 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+        err = mailer.Send(Mail{
+            config.Mail.Sender,
+            email,
+            target + " - query received by " + server,
+            "",
+            config.Mail.BCC,
+        })
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return
+        }
 	}).Methods("POST")
 
 	r.HandleFunc("/error", func(w http.ResponseWriter, req *http.Request) {
@@ -222,54 +253,50 @@ func main() {
 	}).Methods("POST")
 
 	r.HandleFunc("/jobs", func(w http.ResponseWriter, req *http.Request) {
-		server := req.FormValue("SERVER")
-		if isIn(server, config.Cameo.Servers) == -1 {
-			http.Error(w, "Invalid server", http.StatusBadRequest)
-			return
-		}
-		err := os.MkdirAll(path.Join(config.Cameo.JobPath, "done", server), 0755)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+        for _, server := range config.Cameo.Servers {
+            err := os.MkdirAll(path.Join(config.Cameo.JobPath, "done", server), 0755)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+            }
 
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+            w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
-		handle, err := os.Open(path.Join(config.Cameo.JobPath, "jobs", server))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		files, err := handle.Readdir(-1)
-		handle.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
+            handle, err := os.Open(path.Join(config.Cameo.JobPath, "jobs", server))
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+            }
+            files, err := handle.Readdir(-1)
+            handle.Close()
+            if err != nil {
+                log.Fatal(err)
+            }
 
-		for _, file := range files {
-			if file.Mode().IsRegular() == false {
-				continue
-			}
-			if filepath.Ext(file.Name()) != ".json" {
-				continue
-			}
+            for _, file := range files {
+                if file.Mode().IsRegular() == false {
+                    continue
+                }
+                if filepath.Ext(file.Name()) != ".json" {
+                    continue
+                }
 
-			data, err := ioutil.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			w.Write([]byte(data))
-			if data[len(data)-1] != '\n' {
-				w.Write([]byte("\n"))
-			}
-			err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-		}
+                data, err := ioutil.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusBadRequest)
+                    return
+                }
+                w.Write([]byte(data))
+                if data[len(data)-1] != '\n' {
+                    w.Write([]byte("\n"))
+                }
+                err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
+                if err != nil {
+                    http.Error(w, err.Error(), http.StatusBadRequest)
+                    return
+                }
+            }
+        }
 	}).Methods("POST")
 
 	h := http.Handler(r)
