@@ -254,6 +254,12 @@ func main() {
 
 	r.HandleFunc("/jobs", func(w http.ResponseWriter, req *http.Request) {
         for _, server := range config.Cameo.Servers {
+            err = os.MkdirAll(path.Join(config.Cameo.JobPath, "jobs", server), 0755)
+            if err != nil {
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+            }
+
             err := os.MkdirAll(path.Join(config.Cameo.JobPath, "done", server), 0755)
             if err != nil {
                 http.Error(w, err.Error(), http.StatusBadRequest)
