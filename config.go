@@ -78,7 +78,8 @@ var defaultFileContent = []byte(`{
         "sender"    : "Webserver <mail@example.org>",
         */,
 		// list of emails to BCC
-		"bcc"       : []
+		"bcc"       : [],
+		"confirm"   : ""
     }
 }
 `)
@@ -90,10 +91,11 @@ type ConfigCameo struct {
 }
 
 type ConfigMail struct {
-	Mailer *ConfigMailtransport `json:"mailer"`
-	Sender string               `json:"sender"`
-	Target string               `json:"target"`
-	BCC    []string             `json:"bcc"`
+	Mailer  *ConfigMailtransport `json:"mailer"`
+	Sender  string               `json:"sender"`
+	Confirm string               `json:"confirm"`
+	Target  string               `json:"target"`
+	BCC     []string             `json:"bcc"`
 }
 
 type ConfigAuth struct {

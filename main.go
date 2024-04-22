@@ -170,17 +170,22 @@ func main() {
 			return
 		}
 
-        err = mailer.Send(Mail{
-            config.Mail.Sender,
-            email,
-            target + " - query received by " + server,
-            "",
-            config.Mail.BCC,
-        })
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusBadRequest)
-            return
-        }
+		confirmEmail := email
+		if config.Mail.Confirm != "" {
+			confirmEmail = config.Mail.Confirm
+		}
+
+		err = mailer.Send(Mail{
+			config.Mail.Sender,
+			confirmEmail,
+			target + " - query received by " + server,
+			"",
+			config.Mail.BCC,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}).Methods("POST")
 
 	r.HandleFunc("/error", func(w http.ResponseWriter, req *http.Request) {

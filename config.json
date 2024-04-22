@@ -64,6 +64,7 @@
         "sender"    : "Webserver <mail@example.org>",
         */
         // list of emails to BCC
-        "bcc": []
+        "bcc"       : [],
+        "confirm"   : ""
     }
 }
