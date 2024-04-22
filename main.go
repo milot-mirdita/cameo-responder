@@ -12,8 +12,8 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-    "strings"
-    "strconv"
+	"strconv"
+	"strings"
 
 	"github.com/goji/httpauth"
 	"github.com/gorilla/handlers"
@@ -31,7 +31,7 @@ func sanitizeStoichiometry(value string) string {
 }
 
 func sanitizeSequence(value string) string {
-    rx := regexp.MustCompile("[^A-Z:]")
+	rx := regexp.MustCompile("[^A-Z:]")
 	return rx.ReplaceAllString(strings.ToUpper(value), "")
 }
 
@@ -49,7 +49,7 @@ type Job struct {
 	Server        string `json:"server"`
 	Target        string `json:"target"`
 	Sequence      string `json:"sequence"`
-    Stoichiometry string `json:"stoichiometry"`
+	Stoichiometry string `json:"stoichiometry"`
 	Email         string `json:"email"`
 	ResponseURL   string `json:"response"`
 }
@@ -106,36 +106,35 @@ func main() {
 	log.Println("Using " + config.Mail.Mailer.Type + " mail transport")
 	mailer := config.Mail.Mailer.GetTransport()
 
-    splitStoichiometry := regexp.MustCompile("[0-9]+")
+	splitStoichiometry := regexp.MustCompile("[0-9]+")
 	r := mux.NewRouter()
 	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		email := req.FormValue("REPLY-E-MAIL")
 		server := req.FormValue("SERVER")
 		target := sanitizeTarget(req.FormValue("TARGET"))
 		sequence := req.FormValue("SEQUENCE")
-        stoichiometry := sanitizeStoichiometry(req.FormValue("STOICHIOMETRY"))
-        if stoichiometry != "" {
-            repeats := splitStoichiometry.FindAllString(stoichiometry, -1)
-            i := 0
-            var s []string
-            for _, line := range strings.Split(strings.TrimSuffix(sequence, "\n"), "\n") {
-                if strings.HasPrefix(line, ">") {
-                    continue
-                }
-                repeat, _ := strconv.Atoi(repeats[i])
-                for j := 0; j < repeat; j++ {
-                    s = append(s, line)
-                }
-                i += 1
-            }
-            sequence = strings.Join(s, ":")
-        }
-        sequence = sanitizeSequence(sequence)
+		stoichiometry := sanitizeStoichiometry(req.FormValue("STOICHIOMETRY"))
+		if stoichiometry != "" {
+			repeats := splitStoichiometry.FindAllString(stoichiometry, -1)
+			i := 0
+			var s []string
+			for _, line := range strings.Split(strings.TrimSuffix(sequence, "\n"), "\n") {
+				if strings.HasPrefix(line, ">") {
+					continue
+				}
+				repeat, _ := strconv.Atoi(repeats[i])
+				for j := 0; j < repeat; j++ {
+					s = append(s, line)
+				}
+				i += 1
+			}
+			sequence = strings.Join(s, ":")
+		}
+		sequence = sanitizeSequence(sequence)
 		if email == "" || server == "" || target == "" || sequence == "" {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 
 		_, err = mail.ParseAddress(email)
 		if err != nil {
@@ -258,56 +257,56 @@ func main() {
 	}).Methods("POST")
 
 	r.HandleFunc("/jobs", func(w http.ResponseWriter, req *http.Request) {
-        for _, server := range config.Cameo.Servers {
-            err = os.MkdirAll(path.Join(config.Cameo.JobPath, "jobs", server), 0755)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusBadRequest)
-                return
-            }
+		for _, server := range config.Cameo.Servers {
+			err = os.MkdirAll(path.Join(config.Cameo.JobPath, "jobs", server), 0755)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 
-            err := os.MkdirAll(path.Join(config.Cameo.JobPath, "done", server), 0755)
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusBadRequest)
-                return
-            }
+			err := os.MkdirAll(path.Join(config.Cameo.JobPath, "done", server), 0755)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 
-            w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
-            handle, err := os.Open(path.Join(config.Cameo.JobPath, "jobs", server))
-            if err != nil {
-                http.Error(w, err.Error(), http.StatusBadRequest)
-                return
-            }
-            files, err := handle.Readdir(-1)
-            handle.Close()
-            if err != nil {
-                log.Fatal(err)
-            }
+			handle, err := os.Open(path.Join(config.Cameo.JobPath, "jobs", server))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			files, err := handle.Readdir(-1)
+			handle.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
 
-            for _, file := range files {
-                if file.Mode().IsRegular() == false {
-                    continue
-                }
-                if filepath.Ext(file.Name()) != ".json" {
-                    continue
-                }
+			for _, file := range files {
+				if file.Mode().IsRegular() == false {
+					continue
+				}
+				if filepath.Ext(file.Name()) != ".json" {
+					continue
+				}
 
-                data, err := ioutil.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
-                if err != nil {
-                    http.Error(w, err.Error(), http.StatusBadRequest)
-                    return
-                }
-                w.Write([]byte(data))
-                if data[len(data)-1] != '\n' {
-                    w.Write([]byte("\n"))
-                }
-                err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
-                if err != nil {
-                    http.Error(w, err.Error(), http.StatusBadRequest)
-                    return
-                }
-            }
-        }
+				data, err := ioutil.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+				w.Write([]byte(data))
+				if data[len(data)-1] != '\n' {
+					w.Write([]byte("\n"))
+				}
+				err = os.Rename(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()), path.Join("done", server, file.Name()))
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
+		}
 	}).Methods("POST")
 
 	h := http.Handler(r)
