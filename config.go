@@ -149,7 +149,7 @@ func DefaultConfig() (ConfigRoot, error) {
 func ReadConfig(r io.Reader, relativeTo string) (ConfigRoot, error) {
 	var config ConfigRoot
 	if err := DecodeJsonAndValidate(r, &config); err != nil {
-		return config, fmt.Errorf("Fatal error for config file: %s\n", err)
+		return config, fmt.Errorf("fatal error for config file: %s", err)
 	}
 
 	paths := []*string{&config.Cameo.JobPath}
@@ -178,14 +178,14 @@ func (c *ConfigRoot) ReadParameters(args []string) error {
 	inParameter := false
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-") {
-			if inParameter == true {
-				return errors.New("Invalid Parameter String")
+			if inParameter {
+				return errors.New("invalid parameter string")
 			}
 			key = strings.TrimLeft(arg, "-")
 			inParameter = true
 		} else {
-			if inParameter == false {
-				return errors.New("Invalid Parameter String")
+			if !inParameter {
+				return errors.New("invalid parameter string")
 			}
 			err := c.setParameter(key, arg)
 			if err != nil {
@@ -195,8 +195,8 @@ func (c *ConfigRoot) ReadParameters(args []string) error {
 		}
 	}
 
-	if inParameter == true {
-		return errors.New("Invalid Parameter String")
+	if inParameter {
+		return errors.New("invalid parameter string")
 	}
 
 	return nil
@@ -211,13 +211,13 @@ func (c *ConfigRoot) setParameter(key string, value string) error {
 func setNodeValue(node interface{}, path []string, value string) error {
 	if len(path) == 0 {
 		if v, ok := node.(reflect.Value); ok {
-			if v.IsValid() == false || v.CanSet() == false {
-				return errors.New("Leaf node is not valid")
+			if !v.IsValid() || !v.CanSet() {
+				return errors.New("leaf node is not valid")
 			}
 
 			switch v.Kind() {
 			case reflect.Struct:
-				return errors.New("Leaf node is a struct")
+				return errors.New("leaf node is a struct")
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				i, err := strconv.ParseInt(value, 10, 64)
 				if err != nil {
@@ -243,11 +243,11 @@ func setNodeValue(node interface{}, path []string, value string) error {
 				v.SetString(value)
 				break
 			default:
-				return errors.New("Leaf node type not implemented")
+				return errors.New("leaf node type not implemented")
 			}
 			return nil
 		} else {
-			return errors.New("Leaf node is not a value")
+			return errors.New("leaf node is not a value")
 		}
 	}
 
@@ -266,7 +266,7 @@ func setNodeValue(node interface{}, path []string, value string) error {
 	}
 
 	if v.Kind() != reflect.Struct {
-		return errors.New("Node is not a struct")
+		return errors.New("node is not a struct")
 	}
 
 	for i := 0; i < v.NumField(); i++ {
@@ -281,5 +281,5 @@ func setNodeValue(node interface{}, path []string, value string) error {
 		}
 	}
 
-	return errors.New("Path not found in config")
+	return errors.New("path not found in config")
 }

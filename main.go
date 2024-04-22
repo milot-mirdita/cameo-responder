@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/mail"
@@ -227,7 +227,7 @@ func main() {
 			return
 		}
 		if isIn(server, config.Cameo.Servers) == -1 {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "invalid server", http.StatusBadRequest)
 			return
 		}
 
@@ -237,7 +237,7 @@ func main() {
 			return
 		}
 		defer file.Close()
-		result, err := ioutil.ReadAll(file)
+		result, err := io.ReadAll(file)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -284,14 +284,14 @@ func main() {
 			}
 
 			for _, file := range files {
-				if file.Mode().IsRegular() == false {
+				if !file.Mode().IsRegular() {
 					continue
 				}
 				if filepath.Ext(file.Name()) != ".json" {
 					continue
 				}
 
-				data, err := ioutil.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
+				data, err := os.ReadFile(path.Join(config.Cameo.JobPath, "jobs", server, file.Name()))
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
