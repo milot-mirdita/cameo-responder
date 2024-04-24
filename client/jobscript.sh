@@ -11,8 +11,7 @@ err_report() {
 }
 trap 'err_report' ERR
 
-source ./config.sh
-WORKDIR="$BASE/{{server}}/{{target}}-{{stoichiometry}}"
+WORKDIR="{{BASE}}/{{server}}/{{target}}-{{stoichiometry}}"
 mkdir -p "${WORKDIR}"
 
 hostname > "${WORKDIR}/job.host"
@@ -31,13 +30,12 @@ BEST=$(echo "${WORKDIR}/result/"*"_${RELAXED}_rank_001_"*".pdb")
 
 # see https://predictioncenter.org/casp15/index.cgi?page=format
 TARGET="{{target}}"
-STOICHIOMETRY="{{stoichiometry}}"
 cat > "${WORKDIR}/job.pdb" <<End-of-Pdb-Header
 PFRMAT TS
 TARGET {{target}}
-AUTHOR ${GROUP_ID}
-METHOD ${GROUP_SERVER}
-METHOD git: ${COLABFOLD_VERSION}
+AUTHOR {{GROUP_ID}}
+METHOD {{GROUP_SERVER}}
+METHOD git: {{COLABFOLD_VERSION}}
 METHOD ${PARAMS}
 End-of-Pdb-Header
 
@@ -51,7 +49,7 @@ for i in {1..5}; do
     if [ "${RELAXED}" = "relaxed" ]; then
         awk -v i=${CNT} 'BEGIN { printf("MODEL %8s\n", i); }' >> "${WORKDIR}/job.pdb"
     fi
-    cat "${FILE}" | "${BASE}/add_parents.py" - "${NAMES}" "${STOICHIOMETRY}" \
+    cat "${FILE}" | "{{BASE}}/add_parents.py" - "${NAMES}" "{{STOICHIOMETRY}}" \
         | awk -v i=${CNT} \
             '$1 == "END" { next; } \
             $1 == "MODEL" { printf("MODEL %8s\n", i); next; } \
@@ -73,15 +71,15 @@ else
     curl -X POST -F TARGET='{{target}}' '{{response}}/error'
 fi
 
-cp -f -- "${WORKDIR}/job.pdb" "${UPLOAD}/{{target}}-{{stoichiometry}}.pdb"
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}.pdb"
-tar -C "$BASE/{{server}}" -czvf "${UPLOAD}/{{target}}-{{stoichiometry}}.tar.gz" "{{target}}-{{stoichiometry}}/result"
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}.tar.gz"
-cp -f -- "${WORKDIR}/result/{{target}}_coverage.png" "${UPLOAD}/{{target}}-{{stoichiometry}}.png" 
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}.png"
-cp -f -- "${WORKDIR}/result/{{target}}_coverage.png" "${UPLOAD}/{{target}}-{{stoichiometry}}_coverage.png" 
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}_coverage.png"
-cp -f -- "${WORKDIR}/result/{{target}}_plddt.png" "${UPLOAD}/{{target}}-{{stoichiometry}}_plddt.png" 
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}_plddt.png"
-cp -f -- "${WORKDIR}/result/{{target}}_PAE.png" "${UPLOAD}/{{target}}-{{stoichiometry}}_PAE.png" 
-chmod a+r "${UPLOAD}/{{target}}-{{stoichiometry}}_PAE.png"
+cp -f -- "${WORKDIR}/job.pdb" "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
+tar -C "{{BASE}}/{{server}}" -czvf "{{UPLOAD}}/{{target}}-{{stoichiometry}}.tar.gz" "{{target}}-{{stoichiometry}}/result"
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}.tar.gz"
+cp -f -- "${WORKDIR}/result/{{target}}_coverage.png" "{{UPLOAD}}/{{target}}-{{stoichiometry}}.png" 
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}.png"
+cp -f -- "${WORKDIR}/result/{{target}}_coverage.png" "{{UPLOAD}}/{{target}}-{{stoichiometry}}_coverage.png" 
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}_coverage.png"
+cp -f -- "${WORKDIR}/result/{{target}}_plddt.png" "{{UPLOAD}}/{{target}}-{{stoichiometry}}_plddt.png" 
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}_plddt.png"
+cp -f -- "${WORKDIR}/result/{{target}}_pae.png" "{{UPLOAD}}/{{target}}-{{stoichiometry}}_pae.png" 
+chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}_pae.png"

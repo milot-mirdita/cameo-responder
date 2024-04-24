@@ -1,5 +1,10 @@
-#!/bin/sh -e
-source ./config.sh
+#!/bin/sh -xe
+. ./config.sh
+export BASE
+export COLABFOLD_VERSION
+export UPLOAD
+export GROUP_ID
+export GROUP_SERVER
 
 WORKDIR="${BASE}/api"
 mkdir -p "${WORKDIR}"
@@ -21,5 +26,5 @@ while read -r line; do
     eval $(echo "$line" | jq -r "to_entries|map(\"export \(.key)=\(.value|tostring)\"),map(\"export \(.key)_len=\(.value|length)\")|.[]") 
     mkdir -p "${BASE}/${server}/${target}-${stoichiometry}"
     ./mo jobscript.sh > "${BASE}/${server}/${target}-${stoichiometry}/job.sh"
-    sbatch -Q "${BASE}/${server}/${target}-${stoichiometry}/job.sh"
+    sbatch -D "$BASE" -Q "${BASE}/${server}/${target}-${stoichiometry}/job.sh"
 done < "${API}"
