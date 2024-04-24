@@ -142,7 +142,7 @@ func main() {
 			return
 		}
 		if isIn(server, config.Cameo.Servers) == -1 {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "invalid server", http.StatusBadRequest)
 			return
 		}
 
