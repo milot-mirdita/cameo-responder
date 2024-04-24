@@ -69,7 +69,7 @@ func (r Job) Hash() string {
 
 func ParseConfigName(args []string) (string, []string) {
 	resArgs := make([]string, 0)
-	file := ""
+	file := "config.json"
 	for i := 0; i < len(args); i++ {
 		if args[i] == "-config" {
 			file = args[i+1]
