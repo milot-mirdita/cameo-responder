@@ -83,4 +83,4 @@ cp -f -- "${WORKDIR}/result/{{target}}_plddt.png" "{{UPLOAD}}/{{target}}-{{stoic
 chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}_plddt.png"
 cp -f -- "${WORKDIR}/result/{{target}}_pae.png" "{{UPLOAD}}/{{target}}-{{stoichiometry}}_pae.png" 
 chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}_pae.png"
-bash "{{UPLOAD}}/make_index.sh" > "{{UPLOAD}}/index.html"
+(cd "{{UPLOAD}}" && bash "./make_index.sh" > "./index.html")
