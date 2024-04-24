@@ -20,7 +20,7 @@ cat <<-EOF
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0,user-scalable=no">
-<title>ColabFold CASP15 Predictions</title>
+<title>ColabFold CASP16 Predictions</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -156,7 +156,7 @@ h1 {
 </head>
 <body>
 <div id="list">
-<h1><a href="https://github.com/sokrypton/ColabFold">ColabFold</a> CASP15 Predictions</h1>
+<h1><a href="https://github.com/sokrypton/ColabFold">ColabFold</a> CASP16 Predictions</h1>
 EOF
 
 # Loop through files and generate HTML sections
