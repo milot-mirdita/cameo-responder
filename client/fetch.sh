@@ -6,6 +6,7 @@ export UPLOAD
 export GROUP_ID
 export GROUP_SERVER
 
+
 WORKDIR="${BASE}/api"
 mkdir -p "${WORKDIR}"
 
@@ -15,7 +16,7 @@ if [ -e "${INPUT}" ]; then
 else
     TS=$(date +%s)
     API="${WORKDIR}/api-${TS}"
-    curl -S -s -X POST https://casp.colabfold.com/jobs > "${API}"
+    curl -S -s -X POST "${ENDPOINT}" > "${API}"
     if [ ! -s "${API}" ]; then
         rm -f -- "${API}"
         exit 0
