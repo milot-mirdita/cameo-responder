@@ -10,13 +10,18 @@ export PASSWORD
 WORKDIR="${BASE}/api"
 mkdir -p "${WORKDIR}"
 
+PASS_PAR=""
+if [ "{{PASSWORD}}" != "" ]; then
+    PASS_PAR="-F PASSWORD={{PASSWORD}}"
+fi
+
 INPUT="$1"
 if [ -e "${INPUT}" ]; then
     API="$1"
 else
     TS=$(date +%s)
     API="${WORKDIR}/api-${TS}"
-    curl -S -s -X POST "${ENDPOINT}" > "${API}"
+    curl -S -s -X POST ${PASS_PAR} "${ENDPOINT}" > "${API}"
     if [ ! -s "${API}" ]; then
         rm -f -- "${API}"
         exit 0
