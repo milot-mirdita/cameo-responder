@@ -83,6 +83,16 @@ func ParseConfigName(args []string) (string, []string) {
 	return file, resArgs
 }
 
+func PasswordProtected(param string, password string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if password == r.FormValue(param) {
+			h.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
+	})
+}
+
 func main() {
 	configFile, args := ParseConfigName(os.Args[1:])
 
@@ -311,8 +321,13 @@ func main() {
 
 	h := http.Handler(r)
 	if config.Server.Auth != nil {
-		h = httpauth.SimpleBasicAuth(config.Server.Auth.Username, config.Server.Auth.Password)(h)
+		if config.Server.Auth.Username != "" && config.Server.Auth.Password != "" {
+			h = httpauth.SimpleBasicAuth(config.Server.Auth.Username, config.Server.Auth.Password)(h)
+		} else if config.Server.Auth.Password != "" {
+			h = PasswordProtected("PASSWORD", config.Server.Auth.Password, h)
+		}
 	}
+
 	if config.Verbose {
 		h = handlers.LoggingHandler(os.Stdout, h)
 	}

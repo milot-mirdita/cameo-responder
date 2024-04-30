@@ -99,7 +99,7 @@ type ConfigMail struct {
 }
 
 type ConfigAuth struct {
-	Username string `json:"username" validate:"required"`
+	Username string `json:"username"`
 	Password string `json:"password" validate:"required"`
 }
 
