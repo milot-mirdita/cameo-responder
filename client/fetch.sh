@@ -11,8 +11,8 @@ WORKDIR="${BASE}/api"
 mkdir -p "${WORKDIR}"
 
 PASS_PAR=""
-if [ "{{PASSWORD}}" != "" ]; then
-    PASS_PAR="-F PASSWORD={{PASSWORD}}"
+if [ "${PASSWORD}" != "" ]; then
+    PASS_PAR="-F PASSWORD=${PASSWORD}"
 fi
 
 INPUT="$1"
