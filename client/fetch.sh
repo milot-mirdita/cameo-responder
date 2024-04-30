@@ -5,7 +5,7 @@ export COLABFOLD_VERSION
 export UPLOAD
 export GROUP_ID
 export GROUP_SERVER
-
+export PASSWORD
 
 WORKDIR="${BASE}/api"
 mkdir -p "${WORKDIR}"

@@ -6,8 +6,13 @@
 #SBATCH -c 4
 #SBATCH -o {{server}}/{{target}}-{{stoichiometry}}.log
 
+PASS_PAR=""
+if [ "{{PASSWORD}}" != "" ]; then
+    PASS_PAR="-F PASSWORD={{PASSWORD}}"
+fi
+
 err_report() {
-    curl -X POST -F TARGET='{{target}}' '{{response}}/error'
+    curl -X POST -F TARGET='{{target}}' ${PASS_PAR} '{{response}}/error'
 }
 trap 'err_report' ERR
 
@@ -65,10 +70,10 @@ echo "END" >> "${WORKDIR}/job.pdb"
 #awk -v id=${GROUP_ID_HUMAN} -v orig=${GROUP_SERVER} -v server=${GROUP_SERVER_HUMAN} '$1 == "AUTHOR" { $2 = id; } $1 == "METHOD" && $2 == orig { $2 = server; } { print; }' "${WORKDIR}/job.pdb" > "${WORKDIR}/human.pdb"
 
 if [ -s "${WORKDIR}/job.pdb" ]; then
-    curl -X POST -F REPLY-E-MAIL='{{email}}' -F TARGET='{{target}}' -F SERVER='{{server}}' -F FILE=@"${WORKDIR}/job.pdb" '{{response}}/success'
+    curl -X POST ${PASS_PAR} -F REPLY-E-MAIL='{{email}}' -F TARGET='{{target}}' -F SERVER='{{server}}' -F FILE=@"${WORKDIR}/job.pdb" '{{response}}/success'
     #curl -X POST -F REPLY-E-MAIL='models@predictioncenter.org' -F TARGET='{{target}}' -F SERVER=${GROUP_SERVER_HUMAN} -F FILE=@"${WORKDIR}/human.pdb" '{{response}}/success'
 else
-    curl -X POST -F TARGET='{{target}}' '{{response}}/error'
+    curl -X POST ${PASS_PAR} -F TARGET='{{target}}' '{{response}}/error'
 fi
 
 cp -f -- "${WORKDIR}/job.pdb" "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
