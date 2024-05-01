@@ -54,7 +54,7 @@ for i in {1..5}; do
     if [ "${RELAXED}" = "relaxed" ]; then
         awk -v i=${CNT} 'BEGIN { printf("MODEL %8s\n", i); }' >> "${WORKDIR}/job.pdb"
     fi
-    cat "${FILE}" | "{{BASE}}/add_parents.py" - "${NAMES}" "{{STOICHIOMETRY}}" \
+    cat "${FILE}" | "{{BASE}}/add_parents.py" - "${NAMES}" "{{stoichiometry}}" \
         | awk -v i=${CNT} \
             '$1 == "END" { next; } \
             $1 == "MODEL" { printf("MODEL %8s\n", i); next; } \
