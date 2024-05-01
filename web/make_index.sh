@@ -167,9 +167,16 @@ for file in "${files[@]}"; do
     <section>
         <h2>${base}</h2>
         <a download href="${base}.pdb"><button>PDB File</button></a>
-        <a download href="${base}.tar.gz"><button>MSAs, etc.</button></a>
+        <a download href="${base}.tar.gz"><button>Result Archive</button></a>
         <a href="#${base}.pdb"><button class="viz ${base}">Visualize</button></a>
-        <img src="${base}.png" alt="MSA coverage">
+        <div>
+          <img src="${base}_pae.png" alt="PAE">
+          <div>
+            <img style="float:left; width:45%" src="${base}_coverage.png" alt="MSA coverage">
+            <img style="float:right; width:45%; margin-right:5%;" src="${base}_plddt.png" alt="pLDDT">
+          </div>
+        </div>
+        <div style="clear:both"></div>
     </section>
 EOF
 
@@ -177,7 +184,7 @@ done
 
 cat <<-'EOF'
 <br>
-<small><a href="make_index.sh" style="color:#aaa;">Show code</a></small>
+<small><a href="https://github.com/milot-mirdita/cameo-responder/tree/master/web" style="color:#999;">Code</a></small>
 </div>
 <div id="ngl"></div>
 <div id="name"></div>
