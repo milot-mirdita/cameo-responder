@@ -27,8 +27,7 @@ id,sequence
 {{target}},{{sequence}}
 End-of-Fasta
 
-PARAMS="--num-recycle 12 --num-ensemble 1 --templates --amber --use-gpu-relax"
-colabfold_batch "${WORKDIR}/job.csv" "${WORKDIR}/result" ${PARAMS}
+colabfold_batch "${WORKDIR}/job.csv" "${WORKDIR}/result" {{COLABFOLD_PARAMS}}
 
 RELAXED=relaxed
 BEST=$(echo "${WORKDIR}/result/"*"_${RELAXED}_rank_001_"*".pdb")

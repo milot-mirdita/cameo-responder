@@ -3,6 +3,7 @@
 export BASE
 export UPLOAD
 export COLABFOLD_VERSION
+export COLABFOLD_PARAMS
 export GROUP_ID
 export GROUP_SERVER
 export PASSWORD
@@ -37,6 +38,7 @@ while read -r line; do
     fi
     export UPLOAD
     export COLABFOLD_VERSION
+    export COLABFOLD_PARAMS
     export GROUP_ID
     export GROUP_SERVER
     export PASSWORD
