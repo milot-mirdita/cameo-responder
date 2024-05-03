@@ -75,7 +75,7 @@ else
     curl -X POST ${PASS_PAR} -F TARGET='{{target}}' '{{response}}/error'
 fi
 
-cp -f -- "${WORKDIR}/job.pdb" "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
+cat "${WORKDIR}/job.pdb" | grep -v "^AUTHOR" | sed -E 's|--host-url [^ ]+||g' > "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
 chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}.pdb"
 tar -C "{{BASE}}/{{server}}" -czvf "{{UPLOAD}}/{{target}}-{{stoichiometry}}.tar.gz" "{{target}}-{{stoichiometry}}/result"
 chmod a+r "{{UPLOAD}}/{{target}}-{{stoichiometry}}.tar.gz"
